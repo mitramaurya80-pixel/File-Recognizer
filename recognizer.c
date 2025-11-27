@@ -1,6 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <string.h>
+// Complete function at the top
+int is_printable_ascii(const unsigned char *buffer, size_t len) {
+    for (size_t i = 0; i < len; i++) {
+        // Printable ASCII: 9-13 (tabs, newlines), 32-126 (printable chars)
+        if (buffer[i] < 9 || (buffer[i] > 13 && buffer[i] < 32) || buffer[i] > 126) {
+            return 0;
+        }
+    }
+    return 1;
+}
 
 // Return file extension (including leading dot) on match, NULL on error/unknown
 const char *file_recognizer(const char *filename) {
@@ -9,11 +19,11 @@ const char *file_recognizer(const char *filename) {
         return NULL;
     }
 
-    unsigned char buffer[8];
+    unsigned char buffer[16];
     size_t bytesRead = fread(buffer, 1, sizeof(buffer), file);
     fclose(file);
 
-    if (bytesRead < 8) {
+    if (bytesRead < 4) {
         return NULL;
     }
 
@@ -219,6 +229,97 @@ const char *file_recognizer(const char *filename) {
     if (buffer[0] == 0x50 && buffer[1] == 0x4D) {
         return ".bin";
     }
+    // ... your existing image, audio, video checks ...
+
+    // TEXT FILES
+    // UTF-8 BOM
+    if (buffer[0] == 0xEF && buffer[1] == 0xBB && buffer[2] == 0xBF) {
+        return ".txt";
+    }
+    
+    // UTF-16 LE BOM
+    if (buffer[0] == 0xFF && buffer[1] == 0xFE) {
+        return ".txt";
+    }
+    
+    // UTF-16 BE BOM
+    if (buffer[0] == 0xFE && buffer[1] == 0xFF) {
+        return ".txt";
+    }
+    
+    // Plain text (heuristic - if first 8 bytes are printable ASCII)
+    if (bytesRead >= 8 && is_printable_ascii(buffer, 8)) {
+        return ".txt";
+    }
+
+    // CODE FILES
+    // XML (starts with <?xml)
+    if (buffer[0] == '<' && buffer[1] == '?' && buffer[2] == 'x' && 
+        buffer[3] == 'm' && buffer[4] == 'l') {
+        return ".xml";
+    }
+    
+    // HTML (starts with <!DOCTYPE or <html)
+    if ((buffer[0] == '<' && buffer[1] == '!' && buffer[2] == 'D' && 
+         buffer[3] == 'O' && buffer[4] == 'C' && buffer[5] == 'T' && 
+         buffer[6] == 'Y' && buffer[7] == 'P' && buffer[8] == 'E') ||
+        (buffer[0] == '<' && buffer[1] == 'h' && buffer[2] == 't' && 
+         buffer[3] == 'm' && buffer[4] == 'l')) {
+        return ".html";
+    }
+
+    // JavaScript (common patterns)
+    if ((buffer[0] == '/' && buffer[1] == '/') || 
+        (buffer[0] == 'f' && buffer[1] == 'u' && buffer[2] == 'n' && buffer[3] == 'c' && buffer[4] == 't' && buffer[5] == 'i' && buffer[6] == 'o' && buffer[7] == 'n')) {
+        return ".js";
+    }
+
+    // CSS
+    if (buffer[0] == '/' && buffer[1] == '*' || 
+        (buffer[0] == '@' && buffer[1] == 'i' && buffer[2] == 'm' && buffer[3] == 'p' && buffer[4] == 'o' && buffer[5] == 'r' && buffer[6] == 't')) {
+        return ".css";
+    }
+
+    // C/C++ source
+    if ((buffer[0] == '#' && buffer[1] == 'i' && buffer[2] == 'n' && buffer[3] == 'c' && buffer[4] == 'l' && buffer[5] == 'u' && buffer[6] == 'd' && buffer[7] == 'e') ||
+        (buffer[0] == '/' && buffer[1] == '/') || 
+        (buffer[0] == '/' && buffer[1] == '*')) {
+        return ".c";
+    }
+
+    // Python
+    if ((buffer[0] == '#' && buffer[1] == '!') ||
+        (buffer[0] == 'd' && buffer[1] == 'e' && buffer[2] == 'f' ) ||
+        (buffer[0] == 'i' && buffer[1] == 'm' && buffer[2] == 'p' && buffer[3] == 'o' && buffer[4] == 'r' && buffer[5] == 't' )) {
+        return ".py";
+    }
+
+    // Java
+    if ((buffer[0] == 'p' && buffer[1] == 'a' && buffer[2] == 'c' && buffer[3] == 'k' && buffer[4] == 'a' && buffer[5] == 'g' && buffer[6] == 'e') ||
+        (buffer[0] == 'p' && buffer[1] == 'u' && buffer[2] == 'b' && buffer[3] == 'l' && buffer[4] == 'i' && buffer[5] == 'c')) {
+        return ".java";
+    }
+
+    // SPREADSHEETS
+    // Excel (older .xls format - compound file)
+    if (buffer[0] == 0xD0 && buffer[1] == 0xCF && buffer[2] == 0x11 && buffer[3] == 0xE0) {
+        return ".xls";
+    }
+    
+    // Excel (newer .xlsx format - actually a zip file)
+    if (buffer[0] == 0x50 && buffer[1] == 0x4B && buffer[2] == 0x03 && buffer[3] == 0x04) {
+        // This could be any zip file, we'd need to check contents to be sure it's xlsx
+        return ".xlsx";
+    }
+
+    // PRESENTATIONS
+    // PowerPoint (older .ppt format - compound file)
+    if (buffer[0] == 0xD0 && buffer[1] == 0xCF && buffer[2] == 0x11 && buffer[3] == 0xE0) {
+        // Same magic as .doc and .xls, would need deeper inspection
+        return ".ppt";
+    }
+
+    // ... rest of your existing code ...
 
     return NULL;
 }
