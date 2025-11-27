@@ -5,16 +5,9 @@ This repository contains C source files for a small project in `/home/dhanangya/
 Files
 - `command_exe.c`
 - `recognizer.c`
-- `tem.c`
+- `main.c'
 
 Quick build & run
-
-Change to the project directory (path contains a space, so keep it quoted):
-
-```sh
-cd "/home/dhanangya/.Project/file organizer"
-```
-
 Compile (recommended flags):
 
 ```sh
