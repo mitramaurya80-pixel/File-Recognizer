@@ -18,15 +18,13 @@ cd "/home/dhanangya/.Project/file organizer"
 Compile (recommended flags):
 
 ```sh
-gcc -Wall -Wextra -Werror -g -o main command_exe.c recognizer.c tem.c
+gcc main.c recognizer.c command_exe.c -o filerecognizer
 ```
 
 Run:
 
 ```sh
-./main
+./filerecognizer
 ```
 
-Notes
-- `main` program name is used as the output binary in examples. Adjust the source files to include a `main()` if needed.
-- This README was generated automatically; tell me if you want a different project description or license.
+Created by Raushan Kumar
